@@ -1,0 +1,116 @@
+---
+main_topsize: 0.2 #percent coverage of the poster
+main_bottomsize: 0.1
+#ESSENTIALS
+title: '**Integrating objective measures of ADHD**'
+author:
+  - name: '**Deborah Apthorp**'
+    affil: 1,2
+    main: true
+    orcid: '0000-0001-5785-024X'
+    twitter: deborahapthorp
+    email: dapthorp@une.edu.au
+  - name: Katie Crocker
+    affil: 1
+    main: true
+    email: 'kcrocke2@myune.edu.au'
+
+affiliation:
+  - num: 1
+    address: School of Psychology, University of New England, NSW, Australia
+  - num: 2
+    address: School of Medicine and Psychology, Australian National University, ACT, Australia
+
+main_findings:
+  - "Online **behavioural measures** predict ADHD symptoms better than **eye movements**."
+logoleft_name: images/betterhexlogo.png
+logoright_name: images/UNE_logo.png
+logocenter_name: images/qr-code-black.png
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: false
+    pandoc_args: --mathjax
+    number_sections: false
+bibliography: packages.bib
+link-citations: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+```
+
+# Introduction
+
+Diagnosis of Attention Deficit Hyperactivity Disorder (ADHD) is currently quite fragmented and ad hoc. Diagnostic criteria rely on either self-report, parent-report or both; the main validated survey for adults is the Adult ADHD Self-Report Scale (ASRS; REF). There is increasing interest in more objective measures to increase precision and reliability in diagnosis; since ADHD is construed as a disorder which affects attention, behavioural tasks which are designed to measure various aspects of attention should be applicable. In addition, eye tracking measures are a promising line of enquiry and have shown differences in lab-based studies between individuals with ADHD and controls [REF]. These have the potential to show early warning signs even in babies too young to perform behavioural tasks. We investigated the potential to use online webcam-based eye tracking and behavioural tasks for remote diagnosis. 
+
+```{r, include=FALSE}
+knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
+```
+
+## Objectives
+
+1. Recruit online participants with and without diagnosed ADHD
+2. Collect survey data (ASRS + demographics)
+3. Online eye-tracking (RealEye)
+4. Online behavioural data collection (Continuous Performance Task - Non-X)
+
+# Methods
+
+## Participants 
+
+- 118 completed ASRS (Age: 18-60, M = 36; 24 male)
+- 58 also completed eye tracking and CPT
+- Dropout may have been caused by webcam and browser restrictions 
+
+## Measures 
+
+## Procedure
+
+
+
+# Results
+
+Here you may have some figures to show off: below I have made a scatterplot with the infamous Iris dataset and I can even reference to the figure automatically like this, `Figure \@ref(fig:irisfigure)`, Figure \@ref(fig:irisfigure).
+
+```{r irisfigure, fig.cap='Here is a caption for the figure.', out.width="80%"}
+
+plot(x = iris$Sepal.Length, y = iris$Sepal.Width,
+     col = iris$Species, pch = 19, xlab = "Sepal Length",
+     ylab = "Sepal Width")
+
+```
+
+Maybe you want to show off some of that fancy code you spent so much time on to make that figure, well you can do that too! Just use the `echo=TRUE` option in the r code chunk options, Figure \@ref(fig:myprettycode)!
+
+```{r myprettycode, echo=TRUE, fig.cap='Boxplots, so hot right now!', fig.height=6, out.width="80%"}
+#trim whitespace
+par(mar=c(2,2,0,0))
+#plot boxplots
+boxplot(iris$Sepal.Width~iris$Species,
+        col = "#008080", 
+        border = "#0b4545",
+        ylab = "Sepal Width (cm)",
+        xlab = "Species")
+```
+
+How about a neat table of data? See, Table \@ref(tab:iristable):
+
+```{r, iristable}
+knitr::kable(
+  iris[1:15,1:5], format = "html",
+  caption = "A table made with the **knitr::kable** function.",
+  align = "c", col.names = c("Sepal <br> Length",
+                             "Sepal <br> Width",
+                             "Petal <br> Length",
+                             "Petal <br> Width",
+                             "Species"),
+  escape = FALSE)
+```
+
+# References

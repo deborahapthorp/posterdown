@@ -1,0 +1,10 @@
+^skeleton\.html$
+^skeleton_files$
+^.*\.Rproj$
+^.*\.Rproj\.user$
+^\.Rproj\.user$
+^images$
+^\.travis\.yml$
+^doc$
+^Meta$
+^.github$

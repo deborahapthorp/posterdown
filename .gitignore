@@ -1,0 +1,17 @@
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+*.bib
+.Rproj.user
+*skeleton.html
+skeleton_files/
+skeleton_cahce/
+rosm.cache/
+doc
+Meta
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto
