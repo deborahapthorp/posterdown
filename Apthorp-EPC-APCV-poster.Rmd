@@ -5,7 +5,7 @@ main_bottomsize: 0.1
 title: '**Integrating objective measures of ADHD**'
 author:
   - name: '**Deborah Apthorp**'
-    affil: 1,2
+    affil: 2
     main: true
     orcid: '0000-0001-5785-024X'
     twitter: deborahapthorp
@@ -31,6 +31,8 @@ output:
     self_contained: false
     pandoc_args: --mathjax
     number_sections: false
+    poster_height: 46.8
+    poster_width: 33.1
 bibliography: packages.bib
 link-citations: true
 ---
@@ -44,6 +46,146 @@ knitr::opts_chunk$set(echo = FALSE,
                       out.width = "100%")
 options(knitr.table.format = "html") 
 ```
+
+
+```{r upload and wrangle data, include = FALSE}
+library(ggrain)
+library(tableone)
+library(janitor)
+library(tidyverse)
+library(expss)
+library(psych)
+library(patchwork)
+library(ggpubr)
+library(kableExtra)
+
+allData <- read_csv("data/Qualtrics_CPT_RealEye.csv")
+
+allData  <- clean_names(allData ) # use janitor to clean column names
+
+val_lab(allData$gender) = num_lab("
+             1 Male
+             2 Female
+             3 Other    ")  # Add value labels
+
+val_lab(allData$adhd_yn) = num_lab("
+             0 No
+             1 Yes ")  # Add value labels
+
+
+allData <- allData %>%
+  mutate(adhd_diagnosed = case_when(
+    adhd_yn ==  0 ~ "No",
+    adhd_yn ==  1 ~ "Yes",
+    TRUE ~ NA  # Keep other values unchanged
+  ))
+
+myVars <- c("age","gender")
+catVars <- c("gender")
+
+allData$log_scanpath_length <- log10(allData$scanpath_length)
+
+
+tab1 <- print(CreateTableOne(vars = myVars, strata = "adhd_yn", data = allData, factorVars = catVars))
+
+## ASRS scoring and screening
+
+ASRS <- select(allData, starts_with("q23"))
+
+ASRS_hyperactive <- select(ASRS, contains("hyper_impulsivity"))
+ASRS_inattentive <- select(ASRS, contains("inattentiveness"))
+
+ASRS_screener <- select(ASRS, 1:6)
+keys_ASRS <-  rep(1, 18)
+keys_ASRS_screener <- rep(1,6)
+keys_ASRS_subscales <- rep(1,9)
+
+ASRS_screen_scores <- scoreItems(keys_ASRS_screener, ASRS_screener, totals = TRUE)
+allData$asrs_part_a<-ASRS_screen_scores$scores[,1]
+
+ASRS_total <- scoreItems(keys_ASRS, ASRS, totals = TRUE)
+allData$asrs_total <- ASRS_total$scores[,1]
+
+ASRS_inattentiveness_scores <- scoreItems(keys_ASRS_subscales, ASRS_inattentive, totals = TRUE)
+allData$asrs_inattentiveness <- ASRS_inattentiveness_scores$scores[,1]
+
+ASRS_hyperactivity_scores <- scoreItems(keys_ASRS_subscales, ASRS_hyperactive, totals = TRUE)
+allData$asrs_hyperactivity_impulsivity <- ASRS_inattentiveness_scores$scores[,1]
+
+
+# Make a new variable with probable OR diagnosed ADHD
+allData <- allData %>%
+  mutate(adhd_probable = case_when(
+    adhd_diagnosed == 'Yes' ~ "Yes",
+    asrs_part_a <  14 ~ "No",
+    asrs_part_a >=  14 ~ "Yes",
+    TRUE ~ NA  # Keep other values unchanged
+  ))
+
+
+## ASRS plots from survey part
+
+asrs_screen_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = asrs_part_a, fill = adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('ASRS part A (screener)') + xlab('ADHD diagnosis') + theme_classic()
+
+asrs_inattentiveness_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = asrs_inattentiveness, fill = adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('ASRS inattentiveness') + xlab('ADHD diagnosis') + theme_classic()
+
+asrs_hyperactivity_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = asrs_hyperactivity_impulsivity, fill = adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('ASRS hyperactivity and impulsivity') + xlab('ADHD diagnosis') + theme_classic()
+
+asrs_screen_plot + asrs_inattentiveness_plot + asrs_hyperactivity_plot
+
+## CPT-noX plots
+
+dPrime_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = d_prime, fill = 	adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X d Prime') + xlab('ADHD diagnosis') + theme_classic()
+
+rt_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = r_ts, fill = 	adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X mean RT') + xlab('ADHD diagnosis') + theme_classic()
+
+comissions_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = errors_commission, fill = 	adhd_diagnosed)) +
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X errors of commission') + xlab('ADHD diagnosis') + theme_classic()
+
+dPrime_plot + rt_plot + comissions_plot
+
+
+## Scatter plots
+
+errors_commission_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'errors_commission',
+                               color = 'darkred', shape = 21, size = 1,
+                               add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X errors of commission')
+
+inattentiveness_scatter <- ggscatter(allData, x = 'asrs_inattentiveness', y = 'errors_commission',
+                                       color = "#008080", shape = 21, size = 1,
+                                       add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS inattentivness') + ylab('CPT-X errors of commission')
+
+dPrime_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'd_prime',
+                                       color = '#0b4545', shape = 21, size = 1,
+                                       add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X d Prime score')
+
+scanpath_scatter <- ggscatter(allData, x = 'asrs_total', y = 'log_scanpath_length',
+                              color = 'darkred', shape = 21, size = 1,
+                              add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                              cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Log scanpath length')
+
+fixation_count_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_count',
+                            color = '#008080', shape = 21, size = 1,
+                            add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                            cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation count')
+
+fixation_duration_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_duration_ms',
+                               color = '#0b4545', shape = 21, size = 1,
+                               add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation duration (ms)')
+
+
+```
+
+
 
 # Introduction
 
@@ -64,39 +206,53 @@ knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
 
 ## Participants 
 
+```{r descriptives, echo=FALSE}
+tab1 %>%
+  kable(caption = "Descriptive statistics for age and gender by ADHD diagnosis") %>%
+  kable_styling()
+```
+
+
 - 118 completed ASRS (Age: 18-60, M = 36; 24 male)
 - 58 also completed eye tracking and CPT
 - Dropout may have been caused by webcam and browser restrictions 
 
 ## Measures 
 
+- Adult ADHD self-report scale (ASRS- ref)
+- CPT-noX (Pavlovia/PsychoPy) - errors of omission, errors of commission, d', mean RT
+- Eye tracking (RealEye) - fixation duration, fixation count, scanpath length
+
 ## Procedure
 
-
-
-# Results
-
-Here you may have some figures to show off: below I have made a scatterplot with the infamous Iris dataset and I can even reference to the figure automatically like this, `Figure \@ref(fig:irisfigure)`, Figure \@ref(fig:irisfigure).
-
-```{r irisfigure, fig.cap='Here is a caption for the figure.', out.width="80%"}
-
-plot(x = iris$Sepal.Length, y = iris$Sepal.Width,
-     col = iris$Species, pch = 19, xlab = "Sepal Length",
-     ylab = "Sepal Width")
+ - Qualtrics survey (information, consent, demographics, ASRS)
+ - RealEye online eye tracking - while doing practice task for CPT-noX (ask me why)
+ - CPT-NoX - Pavlovia - see Figure \@ref(fig:CPT-fig)
+ 
+```{r CPT-fig, echo = FALSE, fig.cap = "An illustration of the CPT No-X paradigm"}
+ 
+knitr:::include_graphics("images/CPT-procedure.png")
 
 ```
 
-Maybe you want to show off some of that fancy code you spent so much time on to make that figure, well you can do that too! Just use the `echo=TRUE` option in the r code chunk options, Figure \@ref(fig:myprettycode)!
+# Results
 
-```{r myprettycode, echo=TRUE, fig.cap='Boxplots, so hot right now!', fig.height=6, out.width="80%"}
+Participants who had been diagnosed with ADHD were higher on the ASRS (total and subscales), although there was some overlap - see Figure \@ref(fig:asrs-fig).
+
+```{r asrs-fig, echo = FALSE, fig.cap="ASRS part A (screening section) and subscales for diagnosed and non-diagnosed participants", out.width="100%", warning=FALSE}
+
+asrs_screen_plot + asrs_inattentiveness_plot + asrs_hyperactivity_plot
+
+```
+
+Because so few participants diagnosed with ADHD completed the eye tracking and CPT-X, and since the study attracted the interest of many who suspected they might have ADHD (reflected in the qualitative data and the proportion who scored above the clinical cutoff for Section A), we thought it would be interesting to look at correlations between the ASRS subscales and the behavioural and eye tracking data (also preregistered). There were strong correlations for the behavioural data, but not for any of the eye tracking measures - see Figure \@ref()
+
+```{r correlations-fig, echo=FALSE, fig.cap='Correlations between ASRS measures and behavioural (top) and eye tracking measures (bottom)', fig.height=6, out.width="100%"}
 #trim whitespace
 par(mar=c(2,2,0,0))
 #plot boxplots
-boxplot(iris$Sepal.Width~iris$Species,
-        col = "#008080", 
-        border = "#0b4545",
-        ylab = "Sepal Width (cm)",
-        xlab = "Species")
+(errors_commission_scatter | inattentiveness_scatter | dPrime_scatter)/(scanpath_scatter|fixation_count_scatter|fixation_duration_scatter)
+
 ```
 
 How about a neat table of data? See, Table \@ref(tab:iristable):
