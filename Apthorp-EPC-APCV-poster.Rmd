@@ -22,8 +22,7 @@ affiliation:
     address: School of Medicine and Psychology, Australian National University, ACT, Australia
 
 main_findings:
-  - "Online **behavioural measures** predict 
-   ADHD symptoms better than **eye movements**."
+  - "Online **behavioural measures** are better than **eye movements** for predicting ADHD"
 logoleft_name: images/betterhexlogo.png
 logoright_name: images/UNE_logo.png
 logocenter_name: images/qr-code-black.png
