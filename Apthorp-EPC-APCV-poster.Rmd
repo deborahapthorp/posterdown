@@ -1,5 +1,5 @@
 ---
-main_topsize: 0.2 #percent coverage of the poster
+main_topsize: 0.15 #percent coverage of the poster
 main_bottomsize: 0.1
 #ESSENTIALS
 title: '**Integrating objective measures of ADHD**'
@@ -22,18 +22,20 @@ affiliation:
     address: School of Medicine and Psychology, Australian National University, ACT, Australia
 
 main_findings:
-  - "Online **behavioural measures** predict ADHD symptoms better than **eye movements**."
+  - "Online **behavioural measures** predict 
+   ADHD symptoms better than **eye movements**."
 logoleft_name: images/betterhexlogo.png
 logoright_name: images/UNE_logo.png
 logocenter_name: images/qr-code-black.png
 output: 
   posterdown::posterdown_betterport:
-    self_contained: false
+    self_contained: true
     pandoc_args: --mathjax
     number_sections: false
     poster_height: 46.8
     poster_width: 33.1
-bibliography: packages.bib
+knit: pagedown::chrome_print
+bibliography: adhd.bib
 link-citations: true
 ---
 
@@ -58,6 +60,7 @@ library(psych)
 library(patchwork)
 library(ggpubr)
 library(kableExtra)
+library(broom)
 
 allData <- read_csv("data/Qualtrics_CPT_RealEye.csv")
 
@@ -86,7 +89,7 @@ catVars <- c("gender")
 allData$log_scanpath_length <- log10(allData$scanpath_length)
 
 
-tab1 <- print(CreateTableOne(vars = myVars, strata = "adhd_yn", data = allData, factorVars = catVars))
+tab1 <- print(CreateTableOne(vars = myVars, strata = "adhd_yn", data = allData, factorVars = catVars, test = FALSE))
 
 ## ASRS scoring and screening
 
@@ -110,7 +113,7 @@ ASRS_inattentiveness_scores <- scoreItems(keys_ASRS_subscales, ASRS_inattentive,
 allData$asrs_inattentiveness <- ASRS_inattentiveness_scores$scores[,1]
 
 ASRS_hyperactivity_scores <- scoreItems(keys_ASRS_subscales, ASRS_hyperactive, totals = TRUE)
-allData$asrs_hyperactivity_impulsivity <- ASRS_inattentiveness_scores$scores[,1]
+allData$asrs_hyperactivity_impulsivity <- ASRS_hyperactivity_scores$scores[,1]
 
 
 # Make a new variable with probable OR diagnosed ADHD
@@ -119,6 +122,14 @@ allData <- allData %>%
     adhd_diagnosed == 'Yes' ~ "Yes",
     asrs_part_a <  14 ~ "No",
     asrs_part_a >=  14 ~ "Yes",
+    TRUE ~ NA  # Keep other values unchanged
+  ))
+
+
+allData <- allData %>%
+  mutate(adhd_probable_binary = case_when(
+    adhd_probable == 'Yes' ~ 1,
+    adhd_probable =='No' ~0 ,
     TRUE ~ NA  # Keep other values unchanged
   ))
 
@@ -157,31 +168,40 @@ errors_commission_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsiv
                                add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
                                cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X errors of commission')
 
+dPrime_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'd_prime',
+                                       color = '#008080', shape = 21, size = 1,
+                                       add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
+                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 0.4, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X d Prime score')
+
 inattentiveness_scatter <- ggscatter(allData, x = 'asrs_inattentiveness', y = 'errors_commission',
-                                       color = "#008080", shape = 21, size = 1,
+                                       color = "#0b4545", shape = 21, size = 1,
                                        add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
                                        cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS inattentivness') + ylab('CPT-X errors of commission')
 
-dPrime_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'd_prime',
-                                       color = '#0b4545', shape = 21, size = 1,
-                                       add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X d Prime score')
+
 
 scanpath_scatter <- ggscatter(allData, x = 'asrs_total', y = 'log_scanpath_length',
                               color = 'darkred', shape = 21, size = 1,
                               add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                              cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Log scanpath length')
+                              cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 4.0, label.sep = "\n")) + xlab ('ASRS total') + ylab('Log scanpath length')
 
 fixation_count_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_count',
                             color = '#008080', shape = 21, size = 1,
                             add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                            cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation count')
+                            cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 150, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation count')
 
 fixation_duration_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_duration_ms',
                                color = '#0b4545', shape = 21, size = 1,
                                add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation duration (ms)')
+                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 220, label.sep = "\n")) + xlab ('ASRS total') + ylab('Fixation duration (ms)')
 
+
+## Logistic regression 
+
+logRegFit <- glm(adhd_probable_binary ~ age + gender + errors_omission + errors_commission + r_ts + log_scanpath_length + fixation_duration_ms + fixation_count, data = allData, family = binomial)
+
+
+or_table <- tidy(logRegFit, exponentiate = TRUE, conf.int = TRUE)
 
 ```
 
@@ -189,7 +209,7 @@ fixation_duration_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_
 
 # Introduction
 
-Diagnosis of Attention Deficit Hyperactivity Disorder (ADHD) is currently quite fragmented and ad hoc. Diagnostic criteria rely on either self-report, parent-report or both; the main validated survey for adults is the Adult ADHD Self-Report Scale (ASRS; REF). There is increasing interest in more objective measures to increase precision and reliability in diagnosis; since ADHD is construed as a disorder which affects attention, behavioural tasks which are designed to measure various aspects of attention should be applicable. In addition, eye tracking measures are a promising line of enquiry and have shown differences in lab-based studies between individuals with ADHD and controls [REF]. These have the potential to show early warning signs even in babies too young to perform behavioural tasks. We investigated the potential to use online webcam-based eye tracking and behavioural tasks for remote diagnosis. 
+Diagnosis of Attention Deficit Hyperactivity Disorder (ADHD) is currently quite fragmented and ad hoc [@planton_role_2021]. Diagnostic criteria rely on either self-report, parent-report or both; the main validated survey for adults is the Adult ADHD Self-Report Scale [ASRS\; @kessler_world_2005]. There is increasing interest in more objective measures to increase precision and reliability in diagnosis; since ADHD is construed as a disorder which affects attention, behavioural tasks which are designed to measure various aspects of attention should be applicable The Continuous Performance Test (CPT) is commonly used [@epstein_continuous_1998]. In addition, eye tracking measures are a promising line of enquiry and have shown differences in lab-based studies between individuals with ADHD and controls [@conrad_b_2023]. These have the potential to show early warning signs even in babies too young to perform behavioural tasks. We investigated the potential to use online webcam-based eye tracking and behavioural tasks for remote diagnosis. 
 
 ```{r, include=FALSE}
 knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
@@ -239,34 +259,39 @@ knitr:::include_graphics("images/CPT-procedure.png")
 
 Participants who had been diagnosed with ADHD were higher on the ASRS (total and subscales), although there was some overlap - see Figure \@ref(fig:asrs-fig).
 
-```{r asrs-fig, echo = FALSE, fig.cap="ASRS part A (screening section) and subscales for diagnosed and non-diagnosed participants", out.width="100%", warning=FALSE}
+```{r asrs-fig, echo = FALSE, fig.cap="ASRS part A (screening section) and subscales for diagnosed and non-diagnosed participants", out.width="100%", fig.height=4, warning=FALSE}
 
 asrs_screen_plot + asrs_inattentiveness_plot + asrs_hyperactivity_plot
 
 ```
 
-Because so few participants diagnosed with ADHD completed the eye tracking and CPT-X, and since the study attracted the interest of many who suspected they might have ADHD (reflected in the qualitative data and the proportion who scored above the clinical cutoff for Section A), we thought it would be interesting to look at correlations between the ASRS subscales and the behavioural and eye tracking data (also preregistered). There were strong correlations for the behavioural data, but not for any of the eye tracking measures - see Figure \@ref()
+Because so few participants diagnosed with ADHD completed the eye tracking and CPT-X, and since the study attracted the interest of many who suspected they might have ADHD (reflected in the qualitative data and the proportion who scored above the clinical cutoff for Section A), we thought it would be interesting to look at correlations between the ASRS subscales and the behavioural and eye tracking data (also preregistered). There were strong correlations for the behavioural data, but not for any of the eye tracking measures - see Figure \@ref(fig:correlations-fig)
 
 ```{r correlations-fig, echo=FALSE, fig.cap='Correlations between ASRS measures and behavioural (top) and eye tracking measures (bottom)', fig.height=6, out.width="100%"}
 #trim whitespace
 par(mar=c(2,2,0,0))
 #plot boxplots
-(errors_commission_scatter | inattentiveness_scatter | dPrime_scatter)/(scanpath_scatter|fixation_count_scatter|fixation_duration_scatter)
+(errors_commission_scatter | dPrime_scatter | inattentiveness_scatter)/(scanpath_scatter|fixation_count_scatter|fixation_duration_scatter)
 
 ```
 
-How about a neat table of data? See, Table \@ref(tab:iristable):
+Due to the low number of participants diagnosed with ADHD who completed the CPT (11) and eye tracking (12), we diverged from the preregistration for the final analysis (hierarchical logistic regression) by using the ASRS clinical cutoff to assign non-diagnosed individuals to the ADHD group based on their scores. This resulted in groups of 28 probable/diagnosed ADHD participants and 30 controls. 
 
-```{r, iristable}
-knitr::kable(
-  iris[1:15,1:5], format = "html",
-  caption = "A table made with the **knitr::kable** function.",
-  align = "c", col.names = c("Sepal <br> Length",
-                             "Sepal <br> Width",
-                             "Petal <br> Length",
-                             "Petal <br> Width",
-                             "Species"),
-  escape = FALSE)
+A hierarchical logistic regression showed that, after controlling for age and gender, CPT variables errors of commission, errors of omission and reaction times predicted group membership, but no eye tracking variables were significant in the model. See Table \@ref(tab:logistic-regression-tab)
+
+```{r logistic-regression-tab, echo=FALSE}
+or_table %>%
+  kable(caption = "Odds ratio table for the logistic regression fit") %>%
+  kable_styling()
 ```
+
+# Discussion 
+
+- CPT no-X is feasible to use online as an ADHD diagnostic tool 
+- Online eye tracking is not there yet (at least not RealEye)
+- Tracking for a longer time across entire task would have been better (but calibration may have been an issue?)
+- Integrating more objective measures in ADHD diagnosis is feasible, even in an online environment
+- Could be useful for rural/remote diagnosis where clinical services are limited
+
 
 # References
