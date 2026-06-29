@@ -1,16 +1,16 @@
 ---
-main_topsize: 0.15 #percent coverage of the poster
+main_topsize: 0.16 #percent coverage of the poster
 main_bottomsize: 0.1
 #ESSENTIALS
 title: '**Integrating objective measures of ADHD**'
 author:
   - name: '**Deborah Apthorp**'
-    affil: 2
+    affil: 1,2
     main: true
     orcid: '0000-0001-5785-024X'
     twitter: deborahapthorp
     email: dapthorp@une.edu.au
-  - name: Katie Crocker
+  - name: Kathleen Crocker
     affil: 1
     main: true
     email: 'kcrocke2@myune.edu.au'
@@ -33,7 +33,7 @@ output:
     number_sections: false
     poster_height: 46.8
     poster_width: 33.1
-knit: pagedown::chrome_print
+#knit: pagedown::chrome_print
 bibliography: adhd.bib
 link-citations: true
 ---
@@ -88,7 +88,7 @@ catVars <- c("gender")
 allData$log_scanpath_length <- log10(allData$scanpath_length)
 
 
-tab1 <- print(CreateTableOne(vars = myVars, strata = "adhd_yn", data = allData, factorVars = catVars, test = FALSE))
+tab1 <- print(CreateTableOne(vars = myVars, strata = "adhd_yn", data = allData, factorVars = catVars, test = TRUE))
 
 ## ASRS scoring and screening
 
@@ -146,16 +146,16 @@ asrs_hyperactivity_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), 
 
 asrs_screen_plot + asrs_inattentiveness_plot + asrs_hyperactivity_plot
 
-## CPT-noX plots
+## CPT non-X plots
 
 dPrime_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = d_prime, fill = 	adhd_diagnosed)) +
-  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X d Prime') + xlab('ADHD diagnosis') + theme_classic()
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT Non-X d Prime') + xlab('ADHD diagnosis') + theme_classic()
 
 rt_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = r_ts, fill = 	adhd_diagnosed)) +
-  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X mean RT') + xlab('ADHD diagnosis') + theme_classic()
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT Non-X mean RT') + xlab('ADHD diagnosis') + theme_classic()
 
 comissions_plot <- ggplot(data=subset(allData, !is.na(adhd_diagnosed)), aes(x = adhd_diagnosed, y = errors_commission, fill = 	adhd_diagnosed)) +
-  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT No-X errors of commission') + xlab('ADHD diagnosis') + theme_classic()
+  geom_rain(rain.side = 'l', alpha = .7) + scale_fill_brewer(palette = 'Set1', guide = 'none')+ylab('CPT Non-X errors of commission') + xlab('ADHD diagnosis') + theme_classic()
 
 dPrime_plot + rt_plot + comissions_plot
 
@@ -165,17 +165,17 @@ dPrime_plot + rt_plot + comissions_plot
 errors_commission_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'errors_commission',
                                color = 'darkred', shape = 21, size = 1,
                                add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X errors of commission')
+                               cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT non-X errors of commission')
 
 dPrime_scatter <- ggscatter(allData, x = 'asrs_hyperactivity_impulsivity', y = 'd_prime',
                                        color = '#008080', shape = 21, size = 1,
                                        add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 0.4, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT-X d Prime score')
+                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.y = 0.4, label.sep = "\n")) + xlab ('ASRS hyperactivity/impulsivity') + ylab('CPT non-X d Prime score')
 
 inattentiveness_scatter <- ggscatter(allData, x = 'asrs_inattentiveness', y = 'errors_commission',
                                        color = "#0b4545", shape = 21, size = 1,
                                        add = 'reg.line', conf.int = TRUE, cor.coef = TRUE,
-                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS inattentivness') + ylab('CPT-X errors of commission')
+                                       cor.coeff.args = list(method = "spearman", label.x = 3.5, label.sep = "\n")) + xlab ('ASRS inattentivness') + ylab('CPT non-X errors of commission')
 
 
 
@@ -200,7 +200,7 @@ fixation_duration_scatter <- ggscatter(allData, x = 'asrs_total', y = 'fixation_
 logRegFit <- glm(adhd_probable_binary ~ age + gender + errors_omission + errors_commission + r_ts + log_scanpath_length + fixation_duration_ms + fixation_count, data = allData, family = binomial)
 
 
-or_table <- tidy(logRegFit, exponentiate = TRUE, conf.int = TRUE)
+or_table <- tidy(logRegFit, exponentiate = TRUE, conf.int = FALSE)
 
 ```
 
@@ -208,7 +208,7 @@ or_table <- tidy(logRegFit, exponentiate = TRUE, conf.int = TRUE)
 
 # Introduction
 
-Diagnosis of Attention Deficit Hyperactivity Disorder (ADHD) is currently quite fragmented and ad hoc [@planton_role_2021]. Diagnostic criteria rely on either self-report, parent-report or both; the main validated survey for adults is the Adult ADHD Self-Report Scale [ASRS\; @kessler_world_2005]. There is increasing interest in more objective measures to increase precision and reliability in diagnosis; since ADHD is construed as a disorder which affects attention, behavioural tasks which are designed to measure various aspects of attention should be applicable The Continuous Performance Test (CPT) is commonly used [@epstein_continuous_1998]. In addition, eye tracking measures are a promising line of enquiry and have shown differences in lab-based studies between individuals with ADHD and controls [@conrad_b_2023]. These have the potential to show early warning signs even in babies too young to perform behavioural tasks. We investigated the potential to use online webcam-based eye tracking and behavioural tasks for remote diagnosis. 
+Diagnosis of Attention Deficit Hyperactivity Disorder (ADHD) is currently quite fragmented and ad hoc [@planton_role_2021]. Diagnostic criteria rely on either self-report, parent-report or both; the main validated survey for adults is the Adult ADHD Self-Report Scale [ASRS\; @kessler_world_2005]. There is increasing interest in more objective measures to increase precision and reliability in diagnosis; since ADHD is construed as a disorder which affects attention, behavioural tasks which are designed to measure various aspects of attention should be applicable The Continuous Performance Test (CPT) is commonly used [@epstein_continuous_1998]. In addition, eye tracking measures are a promising line of enquiry and have shown differences in lab-based studies between individuals with ADHD and controls [@conrad_b_2023]. These have the potential to show early warning signs even in babies too young to perform behavioural tasks. We investigated the potential to use online webcam-based eye tracking and behavioural tasks for remote diagnosis. This study was preregistered at the OSF: [osf.io/ar6k2/](https://osf.io/ar6k2/)
 
 ```{r, include=FALSE}
 knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
@@ -218,7 +218,7 @@ knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
 
 1. Recruit online participants with and without diagnosed ADHD
 2. Collect survey data (ASRS + demographics)
-3. Online eye-tracking (RealEye)
+3. Online eye tracking (RealEye)
 4. Online behavioural data collection (Continuous Performance Task - Non-X)
 
 # Methods
@@ -228,6 +228,7 @@ knitr::write_bib(c('posterdown', 'rmarkdown','pagedown'), 'packages.bib')
 ```{r descriptives, echo=FALSE}
 tab1 %>%
   kable(caption = "Descriptive statistics for age and gender by ADHD diagnosis") %>%
+  remove_column(5)%>%
   kable_styling()
 ```
 
@@ -239,18 +240,18 @@ tab1 %>%
 ## Measures 
 
 - Adult ADHD self-report scale (ASRS- ref)
-- CPT-noX (Pavlovia/PsychoPy) - errors of omission, errors of commission, d', mean RT
+- CPT non-X (Pavlovia/PsychoPy) - errors of omission, errors of commission, d', mean RT
 - Eye tracking (RealEye) - fixation duration, fixation count, scanpath length
 
 ## Procedure
 
  - Qualtrics survey (information, consent, demographics, ASRS)
- - RealEye online eye tracking - while doing practice task for CPT-noX (ask me why)
- - CPT-NoX - Pavlovia - see Figure \@ref(fig:CPT-fig)
+ - RealEye online eye tracking - while doing practice task for CPT non-X (ask me why)
+ - CPT non-X - Pavlovia - see Figure \@ref(fig:CPT-fig)
  
-```{r CPT-fig, echo = FALSE, fig.cap = "An illustration of the CPT No-X paradigm"}
+```{r CPT-fig, echo = FALSE, fig.cap = "An illustration of the CPT non-X paradigm"}
  
-knitr:::include_graphics("images/CPT-procedure.png")
+knitr:::include_graphics("images/CPT-procedure.001.png")
 
 ```
 
@@ -264,7 +265,7 @@ asrs_screen_plot + asrs_inattentiveness_plot + asrs_hyperactivity_plot
 
 ```
 
-Because so few participants diagnosed with ADHD completed the eye tracking and CPT-X, and since the study attracted the interest of many who suspected they might have ADHD (reflected in the qualitative data and the proportion who scored above the clinical cutoff for Section A), we thought it would be interesting to look at correlations between the ASRS subscales and the behavioural and eye tracking data (also preregistered). There were strong correlations for the behavioural data, but not for any of the eye tracking measures - see Figure \@ref(fig:correlations-fig)
+Because so few participants diagnosed with ADHD completed the eye tracking and CPT non-X, and since the study attracted the interest of many who suspected they might have ADHD (reflected in the qualitative data and the proportion who scored above the clinical cutoff for Section A), we thought it would be interesting to look at correlations between the ASRS subscales and the behavioural and eye tracking data (also preregistered). There were strong correlations for the behavioural data, but not for any of the eye tracking measures - see Figure \@ref(fig:correlations-fig)
 
 ```{r correlations-fig, echo=FALSE, fig.cap='Correlations between ASRS measures and behavioural (top) and eye tracking measures (bottom)', fig.height=6, out.width="100%"}
 #trim whitespace
@@ -274,19 +275,19 @@ par(mar=c(2,2,0,0))
 
 ```
 
-Due to the low number of participants diagnosed with ADHD who completed the CPT (11) and eye tracking (12), we diverged from the preregistration for the final analysis (hierarchical logistic regression) by using the ASRS clinical cutoff to assign non-diagnosed individuals to the ADHD group based on their scores. This resulted in groups of 28 probable/diagnosed ADHD participants and 30 controls. 
+Due to the low number of participants diagnosed with ADHD who completed the CPT non-X (11) and eye tracking (12), we diverged from the preregistration for the final analysis (hierarchical logistic regression) by using the ASRS clinical cutoff to assign non-diagnosed individuals to the ADHD group based on their scores. This resulted in groups of 28 probable/diagnosed ADHD participants and 30 controls. 
 
-A hierarchical logistic regression showed that, after controlling for age and gender, CPT variables errors of commission, errors of omission and reaction times predicted group membership, but no eye tracking variables were significant in the model. See Table \@ref(tab:logistic-regression-tab)
+A hierarchical logistic regression showed that, after controlling for age and gender, CPT variables errors of commission, errors of omission and reaction times predicted group membership, but no eye tracking variables were significant in the model. Classification accuracy was 85\%, with 90\% sensitivity and 78\% specificity, AUC = 0.93. See Table \@ref(tab:logistic-regression-tab).
 
 ```{r logistic-regression-tab, echo=FALSE}
-or_table %>%
-  kable(caption = "Odds ratio table for the logistic regression fit") %>%
+or_table[-1,] %>%
+  kable(caption = "Odds ratio table for the logistic regression fit", digits = 3) %>%
   kable_styling()
 ```
 
 # Discussion 
 
-- CPT no-X is feasible to use online as an ADHD diagnostic tool 
+- CPT non-X is feasible to use online as an ADHD diagnostic tool 
 - Online eye tracking is not there yet (at least not RealEye)
 - Tracking for a longer time across entire task would have been better (but calibration may have been an issue?)
 - Integrating more objective measures in ADHD diagnosis is feasible, even in an online environment
