@@ -275,7 +275,7 @@ par(mar=c(2,2,0,0))
 
 ```
 
-Due to the low number of participants diagnosed with ADHD who completed the CPT non-X (11) and eye tracking (12), we diverged from the preregistration for the final analysis (hierarchical logistic regression) by using the ASRS clinical cutoff to assign non-diagnosed individuals to the ADHD group based on their scores. This resulted in groups of 28 probable/diagnosed ADHD participants and 30 controls. 
+Due to the low number of participants diagnosed with ADHD who completed the CPT non-X (11) and eye tracking (12), we diverged from the preregistration for the final analysis (hierarchical logistic regression) by using the ASRS clinical cutoff to assign non-diagnosed individuals to the ADHD group based on their scores. This resulted in groups of 31 probable/diagnosed ADHD participants and 27 controls. 
 
 A hierarchical logistic regression showed that, after controlling for age and gender, CPT variables errors of commission, errors of omission and reaction times predicted group membership, but no eye tracking variables were significant in the model. Classification accuracy was 85\%, with 90\% sensitivity and 78\% specificity, AUC = 0.93. See Table \@ref(tab:logistic-regression-tab).
 
